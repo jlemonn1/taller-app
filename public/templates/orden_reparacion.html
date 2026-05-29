@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orden de Reparación / Resguardo de Depósito</title>
+<style>
+/* ======================== RESET & BASE ======================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  line-height: 1.3;
+  color: #222;
+  background: #f5f5f5;
+}
+
+/* ======================== PRINT SETTINGS ======================== */
+@page {
+  size: A4 portrait;
+  margin: 8mm 10mm 10mm 10mm;
+}
+@media print {
+  body { background: #fff; }
+  .page {
+    width: 190mm;
+    min-height: 279mm;
+    max-height: 279mm;
+    margin: 0;
+    padding: 0;
+    page-break-after: always;
+    box-shadow: none;
+    border: none;
+    overflow: hidden;
+  }
+  .page:last-child { page-break-after: auto; }
+  .no-print { display: none !important; }
+  input, textarea, select {
+    border: none !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .check-cell input[type="checkbox"] {
+    -webkit-appearance: checkbox;
+    appearance: checkbox;
+    width: 10px; height: 10px;
+    border: 1px solid #666;
+  }
+}
+
+/* ======================== SCREEN VIEW ======================== */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 15px auto;
+  padding: 10mm;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ======================== UTILITIES ======================== */
+.bold { font-weight: bold; }
+.center { text-align: center; }
+.right { text-align: right; }
+.left { text-align: left; }
+.w-100 { width: 100%; }
+.mt-2 { margin-top: 2mm; }
+.mt-3 { margin-top: 3mm; }
+.mt-4 { margin-top: 4mm; }
+.mb-2 { margin-bottom: 2mm; }
+.flex { display: flex; }
+.flex-between { justify-content: space-between; }
+.flex-center { align-items: center; }
+.gap-2 { gap: 2mm; }
+.border { border: 0.5pt solid #999; }
+.border-b { border-bottom: 0.5pt solid #999; }
+.bg-gray { background-color: #e6e6e6; }
+.bg-light-gray { background-color: #f2f2f2; }
+.p-1 { padding: 1mm; }
+.p-2 { padding: 2mm; }
+.text-xs { font-size: 7.5pt; }
+.text-sm { font-size: 8pt; }
+.text-md { font-size: 9.5pt; }
+.text-lg { font-size: 11pt; }
+
+/* ======================== INPUTS ======================== */
+input[type="text"], input[type="date"], input[type="number"], input[type="email"], textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  border-bottom: 0.5pt solid #bbb;
+  background: transparent;
+  width: 100%;
+  padding: 0.5mm 0;
+  color: #222;
+  outline: none;
+}
+input[type="text"]:focus, input[type="date"]:focus, textarea:focus { border-bottom-color: #555; }
+textarea { resize: none; overflow: hidden; line-height: 1.4; }
+
+/* ======================== CHECKBOXES ======================== */
+.check-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1mm;
+}
+.check-cell input[type="checkbox"] {
+  width: 10px; height: 10px;
+  border: 0.5pt solid #555;
+  background: #fff;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* ======================== TABLES ======================== */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 1mm 1.5mm; vertical-align: top; }
+.tbl-border th, .tbl-border td { border: 0.5pt solid #999; }
+.tbl-header { background-color: #e6e6e6; font-weight: bold; text-align: center; font-size: 8pt; }
+.tbl-subheader { background-color: #f2f2f2; font-weight: bold; text-align: center; font-size: 8pt; }
+
+/* ======================== SVG HELPERS ======================== */
+.svg-logo { height: 18mm; width: auto; }
+.svg-small { height: 8mm; width: auto; }
+
+/* ======================== PAGE 1 LAYOUT ======================== */
+.header-p1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2mm; }
+.taller-info { font-size: 7.5pt; line-height: 1.35; }
+.titulo-doc { font-size: 12pt; font-weight: bold; text-align: center; margin: 2mm 0; text-transform: uppercase; }
+.subtitulo-doc { font-size: 10pt; font-weight: bold; text-align: center; margin-bottom: 3mm; }
+
+/* Grid 2 cols P1 */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; }
+.col-p1 label { display: inline-block; width: 32mm; font-weight: bold; font-size: 8pt; }
+.col-p1 .field-row { display: flex; align-items: baseline; margin-bottom: 1mm; }
+.col-p1 .field-row input { flex: 1; }
+
+/* Vehicle diagram P1 */
+.vehicle-diag-wrap { display: flex; align-items: center; justify-content: center; gap: 4mm; margin-top: 2mm; }
+.vehicle-diag-wrap .label-v { font-size: 7.5pt; font-weight: bold; }
+
+/* ======================== PAGE 2 LAYOUT ======================== */
+.header-p2 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3mm; }
+.header-p2-right { text-align: right; font-size: 8pt; }
+.titulo-p2 { font-size: 13pt; font-weight: bold; text-align: center; margin-bottom: 3mm; }
+
+.info-bar-p2 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1mm;
+  margin-bottom: 3mm;
+}
+.info-bar-p2 .cell { border: 0.5pt solid #999; padding: 1mm; text-align: center; font-size: 7.5pt; }
+.info-bar-p2 .cell .lbl { font-weight: bold; display: block; background: #e6e6e6; margin: -1mm -1mm 1mm -1mm; padding: 0.5mm; font-size: 7pt; }
+
+/* Check sections P2 */
+.check-section { border: 0.5pt solid #999; margin-bottom: 2mm; }
+.check-section .sec-title { background: #e6e6e6; font-weight: bold; font-size: 8pt; padding: 1mm 2mm; display: flex; justify-content: space-between; align-items: center; }
+.check-section .sec-body { padding: 1.5mm 2mm; font-size: 8pt; }
+.check-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1mm; }
+.check-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm; }
+.check-item { display: flex; align-items: center; gap: 1mm; padding: 0.3mm 0; }
+.check-item .lbl { flex: 1; }
+.legend-mrb { display: flex; gap: 3mm; font-size: 7.5pt; margin-bottom: 1mm; }
+.legend-mrb span { display: flex; align-items: center; gap: 1mm; }
+
+/* Car image center P2 */
+.car-center { text-align: center; margin: 2mm 0; }
+.car-center svg { max-height: 55mm; width: auto; }
+
+/* ======================== PAGE 3 LAYOUT ======================== */
+.titulo-p3 { background: #e6e6e6; font-weight: bold; text-align: center; padding: 1.5mm; font-size: 9pt; margin-bottom: 2mm; }
+
+/* ======================== FOOTER / SIGNATURES ======================== */
+.sign-row { display: flex; justify-content: space-between; margin-top: 3mm; font-size: 8pt; }
+.sign-box { width: 48%; text-align: center; }
+.sign-line { border-top: 0.5pt solid #333; margin-top: 8mm; padding-top: 1mm; font-size: 7.5pt; }
+.legal-text { font-size: 6.5pt; text-align: justify; line-height: 1.25; margin-top: 3mm; }
+
+/* ======================== DAMAGE CAR SVG ======================== */
+.damage-cars { display: flex; justify-content: center; gap: 10mm; margin: 2mm 0; }
+.damage-cars svg { height: 28mm; width: auto; }
+.damage-legend { display: flex; justify-content: center; gap: 8mm; font-size: 8pt; margin-top: 1mm; }
+.damage-legend span { display: flex; align-items: center; gap: 1.5mm; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PÁGINA 1 -->
+<!-- ============================================================ -->
+<div class="page" id="page1">
+
+  <!-- Cabecera -->
+  <div class="header-p1">
+    <div>
+      <!-- Logo HS SVG -->
+      <svg class="svg-logo" viewBox="0 0 260 60" xmlns="http://www.w3.org/2000/svg">
+        <!-- Swoosh -->
+        <path d="M10 45 Q40 5 120 15 Q180 25 220 20 Q240 18 250 15" fill="none" stroke="#2E7D32" stroke-width="4" stroke-linecap="round"/>
+        <!-- Coche perfil -->
+        <path d="M35 35 Q35 25 50 20 L90 18 Q110 17 130 20 L170 22 Q185 24 195 28 L200 32 Q205 35 205 40 L205 45 Q205 48 200 48 L190 48 L185 45 L55 45 L50 48 L40 48 Q35 48 35 45 Z" fill="#FFB300" stroke="#2E7D32" stroke-width="2"/>
+        <!-- Techo cristal -->
+        <path d="M55 20 L70 10 L140 10 L165 20 Z" fill="#C8E6C9" stroke="#2E7D32" stroke-width="1.5"/>
+        <!-- Ruedas -->
+        <circle cx="65" cy="48" r="7" fill="#333" stroke="#2E7D32" stroke-width="1.5"/>
+        <circle cx="65" cy="48" r="3" fill="#777"/>
+        <circle cx="175" cy="48" r="7" fill="#333" stroke="#2E7D32" stroke-width="1.5"/>
+        <circle cx="175" cy="48" r="3" fill="#777"/>
+        <!-- Letras HS -->
+        <text x="95" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#2E7D32" letter-spacing="2">H</text>
+        <text x="125" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#2E7D32" letter-spacing="2">S</text>
+        <!-- Texto lateral -->
+        <text x="210" y="25" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2E7D32">Taller</text>
+        <text x="210" y="38" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2E7D32">Hnos.Sabir</text>
+        <text x="210" y="50" font-family="Arial, sans-serif" font-size="8" fill="#555">Mecánica General</text>
+      </svg>
+      <div class="taller-info mt-2">
+        <div class="bold" style="font-size:10pt;">{{ taller.nombre }}</div>
+        <div>{{ taller.especialidad }}</div>
+        <div>{{ taller.direccion }}</div>
+        <div>Tel.: {{ taller.telefono }} &nbsp;&nbsp; Móvil: {{ taller.movil }}</div>
+        <div>e-mail: {{ taller.email }}</div>
+        <div>NIF/CIF <span style="display:inline-block; width:25mm;">{{ taller.nif }}</span> - Nº R.I. <span style="display:inline-block; width:15mm;">{{ taller.ri }}</span></div>
+      </div>
+    </div>
+    <div style="text-align:right; font-size:8pt;">
+      <div style="margin-top:8mm;">F.Prev.Entrega : <input type="text" style="width:25mm; display:inline;" value="{{ f_prev_entrega }}"></div>
+    </div>
+  </div>
+
+  <!-- Título -->
+  <div class="titulo-doc">Orden de Reparación / Resguardo de Depósito</div>
+
+  <!-- Fila O.R. / Matrícula / Bastidor -->
+  <div class="flex flex-between flex-center gap-2" style="margin-bottom:3mm; border:0.5pt solid #999; padding:2mm;">
+    <div><span class="bold">Nº O.R.</span> <input type="text" style="width:25mm; display:inline; font-weight:bold;" value="{{ n_or }}"></div>
+    <div><span class="bold">MATRÍCULA</span> <input type="text" style="width:22mm; display:inline; font-weight:bold;" value="{{ matricula }}"></div>
+    <div><span class="bold">BASTIDOR</span> <input type="text" style="width:55mm; display:inline; font-weight:bold;" value="{{ bastidor }}"></div>
+  </div>
+
+  <!-- Grid datos O.R. y Cliente -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 3mm;">
+    <!-- Columna O.R. -->
+    <div>
+      <div class="tbl-header" style="margin-bottom:1mm; text-align:center;">O.R.</div>
+      <div class="col-p1">
+        <div class="field-row"><label>F.APERTURA :</label><input type="date" value="{{ or_fecha_apertura }}"></div>
+        <div class="field-row"><label>F.CITA :</label><input type="date"></div>
+        <div class="field-row"><label>F.ENTRADA VEHÍCULO :</label><input type="date" value="{{ or_fecha_entrada }}"></div>
+        <div class="field-row"><label>F.SALIDA VEHÍCULO :</label><input type="date"></div>
+        <div class="field-row"><label>KILÓMETROS :</label><input type="number" value="{{ or_km }}"></div>
+        <div class="field-row"><label>COMBUSTIBLE :</label><input type="text" value="{{ or_combustible }}"></div>
+        <div class="field-row"><label>RECEPCIONISTA :</label><input type="text" value="{{ or_recepcionista }}"></div>
+      </div>
+    </div>
+    <!-- Columna CLIENTE -->
+    <div>
+      <div class="tbl-header" style="margin-bottom:1mm; text-align:center;">CLIENTE</div>
+      <div class="col-p1">
+        <div class="field-row"><label>CLIENTE :</label><input type="text" value="{{ cliente_nombre }}"></div>
+        <div class="field-row"><label>C.CONTAC. :</label><input type="text" value="{{ cliente_contacto }}"></div>
+        <div class="field-row"><label>DIRECCIÓN :</label><input type="text" value="{{ cliente_direccion }}"></div>
+        <div class="field-row"><label>POBLACIÓN :</label><input type="text" value="{{ cliente_poblacion }}"></div>
+        <div class="field-row"><label>NIF :</label><input type="text" value="{{ cliente_nif }}"></div>
+        <div class="field-row"><label>TELÉFONOS :</label><input type="text" value="{{ cliente_telefonos }}"></div>
+        <div class="field-row"><label>EMAIL :</label><input type="email" value="{{ cliente_email }}"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VEHÍCULO -->
+  <div class="mt-4">
+    <div class="tbl-header" style="margin-bottom:1mm;">VEHÍCULO</div>
+    <div style="display:grid; grid-template-columns: 2fr 1.2fr 1.8fr; gap: 2mm; align-items:start;">
+      <!-- Datos vehículo -->
+      <div class="col-p1" style="font-size:8pt;">
+        <div class="field-row"><label>MODELO :</label><input type="text" value="{{ veh_modelo }}"></div>
+        <div class="field-row"><label>COLOR :</label><input type="text" value="{{ veh_color }}"></div>
+        <div class="field-row"><label>Nº CONTRATO :</label><input type="text" value="{{ veh_contrato }}"></div>
+        <div class="field-row"><label>F.INICIO GARANTÍA :</label><input type="date" value="{{ veh_inicio_garantia }}"></div>
+        <div class="field-row"><label>F.MATRICULACIÓN :</label><input type="date" value="{{ veh_matriculacion }}"></div>
+        <div class="field-row"><label>Anomalías observadas :</label><input type="text" value="{{ veh_anomalias }}"></div>
+      </div>
+
+      <!-- Diagrama coche -->
+      <div style="text-align:center;">
+        <div class="vehicle-diag-wrap">
+          <div class="label-v">Parte<br>delantera</div>
+          <!-- Vista superior SVG -->
+          <svg viewBox="0 0 120 180" width="26mm" height="40mm" style="margin:0 auto;">
+            <!-- Capó -->
+            <rect x="35" y="10" width="50" height="35" rx="6" fill="none" stroke="#555" stroke-width="1.2"/>
+            <rect x="42" y="18" width="36" height="18" rx="2" fill="none" stroke="#999" stroke-width="0.6"/>
+            <!-- Parabrisas delantero -->
+            <path d="M35 45 Q25 55 25 75 L95 75 Q95 55 85 45 Z" fill="none" stroke="#555" stroke-width="1.2"/>
+            <!-- Techo -->
+            <rect x="25" y="75" width="70" height="55" rx="3" fill="none" stroke="#555" stroke-width="1.2"/>
+            <!-- Luneta trasera -->
+            <path d="M25 130 Q25 150 35 160 L85 160 Q95 150 95 130 Z" fill="none" stroke="#555" stroke-width="1.2"/>
+            <!-- Maletero -->
+            <rect x="35" y="160" width="50" height="12" rx="3" fill="none" stroke="#555" stroke-width="1.2"/>
+            <!-- Puertas -->
+            <line x1="25" y1="102" x2="95" y2="102" stroke="#999" stroke-width="0.6"/>
+            <line x1="60" y1="75" x2="60" y2="130" stroke="#999" stroke-width="0.6"/>
+            <!-- Ruedas -->
+            <circle cx="18" cy="65" r="7" fill="none" stroke="#555" stroke-width="1"/>
+            <circle cx="102" cy="65" r="7" fill="none" stroke="#555" stroke-width="1"/>
+            <circle cx="18" cy="140" r="7" fill="none" stroke="#555" stroke-width="1"/>
+            <circle cx="102" cy="140" r="7" fill="none" stroke="#555" stroke-width="1"/>
+          </svg>
+          <div class="label-v">Parte<br>trasera</div>
+        </div>
+      </div>
+
+      <!-- Checkboxes lateral -->
+      <div style="font-size:7.5pt; line-height:1.6;">
+        <div class="check-item"><input type="checkbox" {% if check_radio %}checked{% endif %}> <span class="lbl">Radio</span></div>
+        <div class="check-item"><input type="checkbox" {% if check_caratura %}checked{% endif %}> <span class="lbl">Carátula</span></div>
+        <div class="check-item"><input type="checkbox" {% if check_neumaticos %}checked{% endif %}> <span class="lbl">Estado Neumáticos (marcar si hay desgaste)</span></div>
+        <div class="check-item"><input type="checkbox" {% if check_llave %}checked{% endif %}> <span class="lbl">Llave antirrobo</span></div>
+        <div class="check-item"><input type="checkbox" {% if check_otros %}checked{% endif %}> <span class="lbl">Otros</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla áreas -->
+  <div class="mt-3">
+    <table class="tbl-border" style="font-size:7.5pt;">
+      <tr class="tbl-header">
+        <td>Clave</td>
+        <td>Motor</td>
+        <td>Cambio</td>
+        <td>Pintura</td>
+        <td>Eq. Interior</td>
+        <td>Mecánica</td>
+        <td>Pintura</td>
+        <td>Chapa</td>
+        <td>Ampliación</td>
+        <td>F.Vto.Garantía</td>
+      </tr>
+      <tr>
+        {%- for area in tabla_areas %}
+        <td style="height:6mm;"><input type="text" style="text-align:center;" value="{{ area }}"></td>
+        {%- endfor %}
+        {%- for _ in range(10 - (tabla_areas|length)) %}
+        <td style="height:6mm;"><input type="text" style="text-align:center;"></td>
+        {%- endfor %}
+      </tr>
+    </table>
+  </div>
+
+  <!-- Tabla averías principal -->
+  <div class="mt-3">
+    <table class="tbl-border" style="font-size:8pt;">
+      <tr class="tbl-header">
+        <td style="width:8%;">AVERÍA</td>
+        <td style="width:12%;">CÓD. AVERÍA</td>
+        <td style="width:40%;">DENOMINACIÓN</td>
+        <td style="width:12%;">TIPO CARGO</td>
+        <td style="width:14%;">F.ALTA</td>
+        <td style="width:14%;">ESTADO</td>
+      </tr>
+      <!-- 8 filas vacías -->
+      {%- for a in averias %}
+      <tr><td><input type="text" value="{{ a.n }}"></td><td><input type="text" value="{{ a.codigo }}"></td><td><input type="text" value="{{ a.denominacion }}"></td><td><input type="text" value="{{ a.tipo }}"></td><td><input type="date" value="{{ a.fecha }}"></td><td><input type="text" value="{{ a.estado }}"></td></tr>
+      {%- endfor %}
+      {%- for _ in range(8 - (averias|length)) %}
+      <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="date"></td><td><input type="text"></td></tr>
+      {%- endfor %}
+    </table>
+  </div>
+
+  <!-- Observaciones -->
+  <div class="mt-3" style="font-size:7.5pt;">
+    <div><strong>Observaciones:</strong></div>
+    <textarea style="width:100%; height:10mm; border:0.5pt solid #999; margin-top:1mm; padding:1mm; font-size:7.5pt;">{{ observaciones }}</textarea>
+  </div>
+
+  <!-- Texto legal -->
+  <div class="legal-text" style="margin-top:2mm;">
+    De conformidad con lo dispuesto en la Ley Orgánica 15/1999 de diciembre de protección de Datos de Carácter Personal, le informamos que los datos que nos facilite serán incorporados a un fichero automatizado del que es responsable el taller cuyos datos sociales y domicilio figuran en este documento, con la finalidad de gestionar y controlar la orden de reparación del vehículo, así como para, salvo que se indique lo contrario, remitirle comunicaciones comerciales de sus productos o servicios o de los sectores de automoción y financieros. Podrá ejercer sus derechos de acceso, rectificación, cancelación y oposición dirigiendo comunicación escrita, acompañada de fotocopia de DNI o documento acreditativo de su identidad, al domicilio social del taller o a través del correo electrónico que figura en la parte superior de este documento.
+  </div>
+  <div style="font-size:7.5pt; margin-top:1mm; text-align:right;">( ) No deseo recibir información comercial.</div>
+
+  <!-- Firmas -->
+  <div style="margin-top:2mm; font-size:7.5pt; line-height:1.3;">
+    Las entregas se efectúan únicamente mediante el pago en contado por los trabajos realizados. De acuerdo con el art. 1599 del vigente código civil, pudiéndose retener el vehículo, en prenda hasta que se pague, conforme con el art. 1600 del mismo texto legal. El vehículo queda depositado en el taller sin objetos en su interior. Terminada la reparación y comunicada la misma al cliente, éste tiene el plazo de tres días hábiles para retirar el vehículo, transcurridos los cuales se le cobrarán gastos de estancia. Autorizo a conducir el vehículo consignado por las calles y carreteras para efectuar las pruebas que estimen necesarias.
+  </div>
+
+  <div class="sign-row" style="margin-top:4mm;">
+    <div class="sign-box">
+      <div class="sign-line">Firma Recepcionista</div>
+    </div>
+    <div class="sign-box">
+      <div class="sign-line">Firma del cliente<br>NIF: <input type="text" style="width:25mm; display:inline; text-align:center;" value="{{ cliente_nif }}"></div>
+    </div>
+    <div class="sign-box" style="font-size:7.5pt; text-align:left; padding-top:2mm;">
+      <div>Renuncia a los repuestos sustituidos Si [ ] No [ ]</div>
+      <div style="margin-top:1mm;">Renuncia al presupuesto de puño y letra Si [ ] No [ ]</div>
+    </div>
+  </div>
+
+  <!-- Pie página -->
+  <div style="position:absolute; bottom:4mm; left:10mm; right:10mm; font-size:6.5pt; text-align:center; color:#555;">
+    Taller Hermanos Sabir - C/ María Cristina, 9 · 45100 Sonseca - Toledo
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PÁGINA 2 -->
+<!-- ============================================================ -->
+<div class="page" id="page2">
+  <div class="header-p2">
+    <div>
+      <svg class="svg-logo" viewBox="0 0 260 60" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 45 Q40 5 120 15 Q180 25 220 20 Q240 18 250 15" fill="none" stroke="#2E7D32" stroke-width="4" stroke-linecap="round"/>
+        <path d="M35 35 Q35 25 50 20 L90 18 Q110 17 130 20 L170 22 Q185 24 195 28 L200 32 Q205 35 205 40 L205 45 Q205 48 200 48 L190 48 L185 45 L55 45 L50 48 L40 48 Q35 48 35 45 Z" fill="#FFB300" stroke="#2E7D32" stroke-width="2"/>
+        <path d="M55 20 L70 10 L140 10 L165 20 Z" fill="#C8E6C9" stroke="#2E7D32" stroke-width="1.5"/>
+        <circle cx="65" cy="48" r="7" fill="#333" stroke="#2E7D32" stroke-width="1.5"/>
+        <circle cx="65" cy="48" r="3" fill="#777"/>
+        <circle cx="175" cy="48" r="7" fill="#333" stroke="#2E7D32" stroke-width="1.5"/>
+        <circle cx="175" cy="48" r="3" fill="#777"/>
+        <text x="95" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#2E7D32" letter-spacing="2">H</text>
+        <text x="125" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#2E7D32" letter-spacing="2">S</text>
+        <text x="210" y="25" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2E7D32">Taller</text>
+        <text x="210" y="38" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2E7D32">Hnos.Sabir</text>
+        <text x="210" y="50" font-family="Arial, sans-serif" font-size="8" fill="#555">Mecánica General</text>
+      </svg>
+    </div>
+    <div class="header-p2-right">
+      <div class="bold" style="font-size:10pt;">{{ taller.nombre }}</div>
+    </div>
+  </div>
+
+  <div class="titulo-p2">Informe de Inspección de Recepción</div>
+
+  <!-- Barra datos -->
+  <div class="info-bar-p2">
+    <div class="cell"><span class="lbl">MODELO/MATRÍCULA</span><input type="text" value="{{ veh_modelo }}"><input type="text" style="margin-top:0.5mm;" value="{{ matricula }}"></div>
+    <div class="cell"><span class="lbl">NOMBRE/APELLIDOS</span><input type="text" value="{{ cliente_nombre }}"></div>
+    <div class="cell"><span class="lbl">FECHA</span><input type="date" value="{{ p2_fecha }}"></div>
+    <div class="cell"><span class="lbl">BASTIDOR/O.R.</span><input type="text" value="{{ bastidor }}"><input type="text" style="margin-top:0.5mm;" value="{{ n_or }}"></div>
+    <div class="cell"><span class="lbl">COMBUSTIBLE</span><input type="text" value="{{ p2_combustible }}"></div>
+    <div class="cell"><span class="lbl">K.M.</span><input type="number" value="{{ or_km }}"></div>
+  </div>
+
+  <!-- Leyenda MRB -->
+  <div class="legend-mrb" style="margin-bottom:2mm;">
+    <span><span style="display:inline-block;width:10px;height:10px;background:#c0c0c0;border:0.5pt solid #666;"></span> ATENCIÓN INMEDIATA</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:#a0a0a0;border:0.5pt solid #666;"></span> ATENCIÓN EN BREVE</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:#808080;border:0.5pt solid #666;"></span> COMPROBADO Y OK</span>
+  </div>
+
+  <!-- Grid principal P2: 3 columnas -->
+  <div style="display:grid; grid-template-columns: 1fr 1.8fr 1fr; gap: 2mm;">
+    <!-- Col izquierda -->
+    <div>
+      <!-- INTERIOR -->
+      <div class="check-section">
+        <div class="sec-title"><span>INTERIOR</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+        <div class="sec-body">
+          <div class="check-item"><span class="lbl">Luces interiores</span><input type="checkbox" {% if inspeccion.get("Luces interiores") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces interiores") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces interiores") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Alfombrilla</span><input type="checkbox" {% if inspeccion.get("Alfombrilla") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Alfombrilla") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Alfombrilla") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Elevalunas/Techo solar/C.C.</span><input type="checkbox" {% if inspeccion.get("Elevalunas/Techo solar/C.C.") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Elevalunas/Techo solar/C.C.") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Elevalunas/Techo solar/C.C.") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Cinturones de seguridad</span><input type="checkbox" {% if inspeccion.get("Cinturones de seguridad") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cinturones de seguridad") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cinturones de seguridad") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Cuadro de instrumentos</span><input type="checkbox" {% if inspeccion.get("Cuadro de instrumentos") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cuadro de instrumentos") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cuadro de instrumentos") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Mandos de intermitentes</span><input type="checkbox" {% if inspeccion.get("Mandos de intermitentes") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Mandos de intermitentes") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Mandos de intermitentes") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Freno de estacionamiento</span><input type="checkbox" {% if inspeccion.get("Freno de estacionamiento") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Freno de estacionamiento") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Freno de estacionamiento") == "B" %}checked{% endif %}></div>
+        </div>
+      </div>
+
+      <!-- NEUMÁTICOS -->
+      <div class="check-section mt-2">
+        <div class="sec-title"><span>NEUMÁTICOS</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+        <div class="sec-body">
+          <div class="check-item"><span class="lbl">Delantero izquierdo</span><input type="checkbox" {% if inspeccion.get("Delantero izquierdo") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Delantero izquierdo") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Delantero izquierdo") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Delantero derecho</span><input type="checkbox" {% if inspeccion.get("Delantero derecho") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Delantero derecho") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Delantero derecho") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Trasero izquierdo</span><input type="checkbox" {% if inspeccion.get("Trasero izquierdo") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Trasero izquierdo") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Trasero izquierdo") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Trasero derecho</span><input type="checkbox" {% if inspeccion.get("Trasero derecho") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Trasero derecho") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Trasero derecho") == "B" %}checked{% endif %}></div>
+          <div style="font-size:6.5pt; margin-top:1mm;">(*)Profundidad mínima del dibujo 1.6 mm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col centro (foto coche) -->
+    <div style="text-align:center;">
+      <svg viewBox="0 0 220 130" width="75mm" height="45mm" style="margin:0 auto;">
+        <!-- Fondo coche frontal estilizado -->
+        <!-- Parachoques -->
+        <path d="M30 105 Q30 90 45 85 L65 80 L155 80 L175 85 Q190 90 190 105 L190 115 Q190 120 185 120 L175 120 L165 120 L165 115 L55 115 L55 120 L45 120 Q35 120 30 115 Z" fill="#e6e6e6" stroke="#555" stroke-width="1.2"/>
+        <!-- Capó -->
+        <path d="M65 80 L75 55 L145 55 L155 80 Z" fill="#f2f2f2" stroke="#555" stroke-width="1.2"/>
+        <!-- Parabrisas -->
+        <path d="M75 55 L80 40 L140 40 L145 55 Z" fill="#d0d8e0" stroke="#555" stroke-width="1"/>
+        <!-- Techo -->
+        <path d="M80 40 L85 28 L135 28 L140 40 Z" fill="#f8f8f8" stroke="#555" stroke-width="1.2"/>
+        <!-- Faros -->
+        <ellipse cx="55" cy="95" rx="12" ry="8" fill="#fff" stroke="#555" stroke-width="1"/>
+        <ellipse cx="165" cy="95" rx="12" ry="8" fill="#fff" stroke="#555" stroke-width="1"/>
+        <!-- Luz antiniebla -->
+        <ellipse cx="55" cy="110" rx="5" ry="3" fill="#e0e0e0" stroke="#555" stroke-width="0.8"/>
+        <ellipse cx="165" cy="110" rx="5" ry="3" fill="#e0e0e0" stroke="#555" stroke-width="0.8"/>
+        <!-- Logo frontal -->
+        <ellipse cx="110" cy="92" rx="7" ry="4" fill="none" stroke="#555" stroke-width="1"/>
+        <path d="M106 89 L110 96 L114 89" fill="none" stroke="#555" stroke-width="1"/>
+        <!-- Matrícula -->
+        <rect x="95" y="105" width="30" height="8" rx="1" fill="#fff" stroke="#555" stroke-width="0.8"/>
+        <!-- Retrovisores -->
+        <path d="M72 58 L58 52 Q55 50 58 58 Z" fill="#ccc" stroke="#555" stroke-width="1"/>
+        <path d="M148 58 L162 52 Q165 50 162 58 Z" fill="#ccc" stroke="#555" stroke-width="1"/>
+        <!-- Ruedas -->
+        <circle cx="55" cy="120" r="10" fill="#333" stroke="#555" stroke-width="1"/>
+        <circle cx="55" cy="120" r="4" fill="#777" stroke="none"/>
+        <circle cx="165" cy="120" r="10" fill="#333" stroke="#555" stroke-width="1"/>
+        <circle cx="165" cy="120" r="4" fill="#777" stroke="none"/>
+      </svg>
+
+      <div style="font-size:7pt; color:#555; margin-top:1mm;">Vehículo de recepción</div>
+    </div>
+
+    <!-- Col derecha -->
+    <div>
+      <!-- COMPARTIMENTO MOTOR -->
+      <div class="check-section">
+        <div class="sec-title"><span>COMPARTIMENTO MOTOR</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+        <div class="sec-body">
+          <div class="check-item"><span class="lbl">Nivel de refrigerante</span><input type="checkbox" {% if inspeccion.get("Nivel de refrigerante") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de refrigerante") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de refrigerante") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Nivel de líquido de frenos</span><input type="checkbox" {% if inspeccion.get("Nivel de líquido de frenos") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de líquido de frenos") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de líquido de frenos") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Nivel de líquido lavaparabrisas</span><input type="checkbox" {% if inspeccion.get("Nivel de líquido lavaparabrisas") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de líquido lavaparabrisas") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de líquido lavaparabrisas") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Nivel de aceite dirección asistida</span><input type="checkbox" {% if inspeccion.get("Nivel de aceite dirección asistida") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de aceite dirección asistida") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Nivel de aceite dirección asistida") == "B" %}checked{% endif %}></div>
+        </div>
+      </div>
+
+      <!-- VISIBILIDAD -->
+      <div class="check-section mt-2">
+        <div class="sec-title"><span>VISIBILIDAD</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+        <div class="sec-body">
+          <div class="check-item"><span class="lbl">Luces delanteras</span><input type="checkbox" {% if inspeccion.get("Luces delanteras") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces delanteras") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces delanteras") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Luna parabrisas</span><input type="checkbox" {% if inspeccion.get("Luna parabrisas") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luna parabrisas") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luna parabrisas") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Escobillas</span><input type="checkbox" {% if inspeccion.get("Escobillas") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Escobillas") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Escobillas") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Luces traseras</span><input type="checkbox" {% if inspeccion.get("Luces traseras") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces traseras") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces traseras") == "B" %}checked{% endif %}></div>
+        </div>
+      </div>
+
+      <!-- MATRÍCULA -->
+      <div class="check-section mt-2">
+        <div class="sec-title"><span>MATRÍCULA</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+        <div class="sec-body">
+          <div class="check-item"><span class="lbl">Placa de matrícula</span><input type="checkbox" {% if inspeccion.get("Placa de matrícula") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Placa de matrícula") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Placa de matrícula") == "B" %}checked{% endif %}></div>
+          <div class="check-item"><span class="lbl">Luces de matrícula</span><input type="checkbox" {% if inspeccion.get("Luces de matrícula") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces de matrícula") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Luces de matrícula") == "B" %}checked{% endif %}></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila inferior: Elementos Extraíbles + Vehículo Elevado -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2mm; margin-top:2mm;">
+    <div class="check-section">
+      <div class="sec-title"><span>ELEMENTOS EXTRAÍBLES</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+      <div class="sec-body">
+        <div class="check-item"><span class="lbl">Cenicero</span><input type="checkbox" {% if inspeccion.get("Cenicero") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cenicero") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Cenicero") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Antena</span><input type="checkbox" {% if inspeccion.get("Antena") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Antena") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Antena") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Llave de seguridad para llantas</span><input type="checkbox" {% if inspeccion.get("Llave de seguridad para llantas") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Llave de seguridad para llantas") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Llave de seguridad para llantas") == "B" %}checked{% endif %}></div>
+        <div class="check-item" style="justify-content:space-between;"><span class="lbl">Rueda de repuesto / Kit de reparación</span><span><input type="text" style="width:12mm; display:inline; text-align:center; font-size:7.5pt;" value="{{ extraibles_rueda }}"></span></div>
+        <div class="check-item" style="justify-content:space-between;"><span class="lbl">Chaleco, Triángulos, Lámparas</span><span><input type="text" style="width:12mm; display:inline; text-align:center; font-size:7.5pt;" value="{{ extraibles_chaleco }}"></span></div>
+        <div class="check-item"><span class="lbl">Otros</span><input type="checkbox" {% if inspeccion.get("Otros") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Otros") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Otros") == "B" %}checked{% endif %}></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <div class="sec-title"><span>VEHÍCULO ELEVADO</span><span style="font-size:7pt;">M &nbsp; R &nbsp; B</span></div>
+      <div class="sec-body">
+        <div class="check-item"><span class="lbl">Dirección y suspensión</span><input type="checkbox" {% if inspeccion.get("Dirección y suspensión") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Dirección y suspensión") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Dirección y suspensión") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Amortiguadores</span><input type="checkbox" {% if inspeccion.get("Amortiguadores") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Amortiguadores") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Amortiguadores") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Discos y pastillas de frenos</span><input type="checkbox" {% if inspeccion.get("Discos y pastillas de frenos") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Discos y pastillas de frenos") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Discos y pastillas de frenos") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Sistema de escape</span><input type="checkbox" {% if inspeccion.get("Sistema de escape") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Sistema de escape") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Sistema de escape") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Guardapolvos</span><input type="checkbox" {% if inspeccion.get("Guardapolvos") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Guardapolvos") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Guardapolvos") == "B" %}checked{% endif %}></div>
+        <div class="check-item"><span class="lbl">Fugas de líquidos</span><input type="checkbox" {% if inspeccion.get("Fugas de líquidos") == "M" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Fugas de líquidos") == "R" %}checked{% endif %}><input type="checkbox" {% if inspeccion.get("Fugas de líquidos") == "B" %}checked{% endif %}></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:7.5pt; margin-top:1mm; text-align:center; font-style:italic;">No olvide retirar sus efectos personales del vehículo</div>
+
+  <!-- Daños Carrocería + Comentarios -->
+  <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap: 2mm; margin-top:2mm;">
+    <div>
+      <div class="check-section">
+        <div class="sec-title">DAÑOS CARROCERÍA</div>
+        <div class="sec-body" style="text-align:center;">
+          <!-- Siluetas SVG -->
+          <svg viewBox="0 0 200 80" width="65mm" height="26mm" style="margin:0 auto;">
+            <!-- Vista frontal -->
+            <g transform="translate(10,10)">
+              <path d="M5 35 Q5 20 15 15 L25 12 L45 12 L55 15 Q65 20 65 35 L65 45 Q65 50 60 50 L55 50 L55 45 L15 45 L15 50 L10 50 Q5 50 5 45 Z" fill="#e6e6e6" stroke="#555" stroke-width="1"/>
+              <path d="M15 12 L20 5 L50 5 L55 12 Z" fill="#f2f2f2" stroke="#555" stroke-width="1"/>
+              <path d="M20 5 L23 0 L47 0 L50 5 Z" fill="#d0d8e0" stroke="#555" stroke-width="0.8"/>
+              <ellipse cx="18" cy="32" rx="6" ry="4" fill="#fff" stroke="#555" stroke-width="0.8"/>
+              <ellipse cx="52" cy="32" rx="6" ry="4" fill="#fff" stroke="#555" stroke-width="0.8"/>
+              <ellipse cx="35" cy="30" rx="4" ry="2" fill="none" stroke="#555" stroke-width="0.6"/>
+              <rect x="30" y="38" width="10" height="4" rx="1" fill="#fff" stroke="#555" stroke-width="0.6"/>
+              <circle cx="12" cy="45" r="5" fill="#333" stroke="#555" stroke-width="0.8"/>
+              <circle cx="58" cy="45" r="5" fill="#333" stroke="#555" stroke-width="0.8"/>
+            </g>
+            <!-- Vista lateral -->
+            <g transform="translate(90,10)">
+              <path d="M5 35 Q5 25 15 20 L20 10 L70 10 L80 20 Q90 25 90 35 L90 42 Q90 45 85 45 L80 45 L75 40 L20 40 L15 45 L10 45 Q5 45 5 42 Z" fill="#e6e6e6" stroke="#555" stroke-width="1"/>
+              <path d="M20 10 L25 2 L65 2 L70 10 Z" fill="#f2f2f2" stroke="#555" stroke-width="1"/>
+              <path d="M25 2 L28 0 L62 0 L65 2 Z" fill="#d0d8e0" stroke="#555" stroke-width="0.8"/>
+              <rect x="30" y="15" width="12" height="8" rx="1" fill="#d0d8e0" stroke="#555" stroke-width="0.6"/>
+              <rect x="50" y="15" width="12" height="8" rx="1" fill="#d0d8e0" stroke="#555" stroke-width="0.6"/>
+              <circle cx="22" cy="40" r="6" fill="#333" stroke="#555" stroke-width="0.8"/>
+              <circle cx="72" cy="40" r="6" fill="#333" stroke="#555" stroke-width="0.8"/>
+            </g>
+          </svg>
+
+          <div class="damage-legend">
+            <span><span style="display:inline-block;width:8px;height:8px;border:0.5pt solid #555; border-radius:50%;"></span> Leve</span>
+            <span><span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid #555;"></span> Medio</span>
+            <span><span style="display:inline-block;width:8px;height:8px;background:#555;transform:rotate(45deg);"></span> Grave</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <div class="sec-title">COMENTARIOS ADICIONALES</div>
+      <div class="sec-body" style="height:26mm;">
+        <div style="border-bottom:0.5pt dotted #999; padding:1.5mm 0; font-size:8pt;">1. <input type="text" style="width:90%; display:inline;" value="{{ comentarios[0] }}"></div>
+        <div style="border-bottom:0.5pt dotted #999; padding:1.5mm 0; font-size:8pt;">2. <input type="text" style="width:90%; display:inline;" value="{{ comentarios[1] }}"></div>
+        <div style="border-bottom:0.5pt dotted #999; padding:1.5mm 0; font-size:8pt;">3. <input type="text" style="width:90%; display:inline;" value="{{ comentarios[2] }}"></div>
+        <div style="border-bottom:0.5pt dotted #999; padding:1.5mm 0; font-size:8pt;">4. <input type="text" style="width:90%; display:inline;" value="{{ comentarios[3] }}"></div>
+        <div style="border-bottom:0.5pt dotted #999; padding:1.5mm 0; font-size:8pt;">5. <input type="text" style="width:90%; display:inline;" value="{{ comentarios[4] }}"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nota importante -->
+  <div class="legal-text" style="margin-top:2mm; font-size:7pt;">
+    <strong>NOTA MUY IMPORTANTE:</strong> Éste informe es el resultado de una inspección visual de los elementos arriba indicados de su vehículo. No sustituye en ningún caso a las revisiones periódicas recomendadas por el fabricante. El análisis que nuestros técnicos realizarán sobre su vehículo puede identificar otras necesidades para mantener la calidad del mismo.
+  </div>
+
+  <!-- Firmas P2 -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2mm; margin-top:3mm;">
+    <div class="check-section" style="text-align:center;">
+      <div class="sec-title" style="justify-content:center;">FIRMA DEL RECEPCIONISTA</div>
+      <div style="height:15mm;"></div>
+    </div>
+    <div class="check-section" style="text-align:center;">
+      <div class="sec-title" style="justify-content:center;">FIRMA DEL CLIENTE</div>
+      <div style="height:12mm;"></div>
+      <div style="font-size:8pt;">NIF: <input type="text" style="width:30mm; display:inline; text-align:center;" value="{{ cliente_nif }}"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- PÁGINA 3 -->
+<!-- ============================================================ -->
+<div class="page" id="page3">
+
+  <div class="titulo-p3">ACTIVIDAD OPERARIO</div>
+
+  <table class="tbl-border" style="font-size:7.5pt;">
+    <tr class="tbl-header">
+      <td style="width:5%;">Nº Oper.</td>
+      <td style="width:28%;">Especificaciones de las operaciones realizadas / Texto atención prestada al cliente</td>
+      <td style="width:8%;">Nº de Códigos</td>
+      <td style="width:8%;">Tiempo de M.O.</td>
+      <td style="width:8%;">Tiempo Acordado</td>
+      <td style="width:10%;">Operarios</td>
+      <td style="width:8%;">Fecha</td>
+      <td style="width:8%;">Hora Comienzo</td>
+      <td style="width:8%;">Hora Terminada</td>
+      <td style="width:9%;">Tiempo parado</td>
+    </tr>
+    <!-- 8 filas vacías -->
+    {%- for op in actividad %}
+      <tr><td><input type="text" value="{{ op.n }}" style="text-align:center;"></td><td><input type="text" value="{{ op.especificacion }}"></td><td><input type="text" value="{{ op.codigos }}"></td><td><input type="text" value="{{ op.tiempo_mo }}"></td><td><input type="text" value="{{ op.tiempo_acordado }}"></td><td><input type="text" value="{{ op.operario }}"></td><td><input type="date" value="{{ op.fecha }}"></td><td><input type="text" value="{{ op.hora_ini }}"></td><td><input type="text" value="{{ op.hora_fin }}"></td><td><input type="text" value="{{ op.tiempo_parado }}"></td></tr>
+      {%- endfor %}
+      {%- for _ in range(8 - (actividad|length)) %}
+      <tr><td><input type="text" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      {%- endfor %}
+    <!-- Importe hora -->
+    <tr>
+      <td colspan="2" class="right tbl-subheader">IMPORTE HORA</td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+    </tr>
+  </table>
+
+  <div class="titulo-p3" style="margin-top:4mm;">LISTA DE SUMINISTROS</div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 3mm;">
+    <!-- Tabla izquierda -->
+    <table class="tbl-border" style="font-size:7.5pt;">
+      <tr class="tbl-header">
+        <td style="width:10%;">Cantidad</td>
+        <td style="width:22%;">Nºde bono / referencia</td>
+        <td style="width:43%;">Designación</td>
+        <td style="width:25%;">Precio</td>
+      </tr>
+      {%- for s in suministros_izq %}
+      <tr><td><input type="number" style="text-align:center;" value="{{ s.cantidad }}"></td><td><input type="text" value="{{ s.bono }}"></td><td><input type="text" value="{{ s.designacion }}"></td><td><input type="text" value="{{ s.precio }}"></td></tr>
+      {%- endfor %}
+      {%- for _ in range(10 - (suministros_izq|length)) %}
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      {%- endfor %}
+    </table>
+
+    <!-- Tabla derecha -->
+    <table class="tbl-border" style="font-size:7.5pt;">
+      <tr class="tbl-header">
+        <td style="width:10%;">Cantidad</td>
+        <td style="width:22%;">Nºde bono / referencia</td>
+        <td style="width:43%;">Designación</td>
+        <td style="width:25%;">Precio</td>
+      </tr>
+      <tr><td><input type="number" style="text-align:center;" placeholder="1"></td><td><input type="text" placeholder="L0411C8E0"></td><td><input type="text" placeholder="..."></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text" placeholder="1733305"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="number" style="text-align:center;"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>
