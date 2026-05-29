@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import SectionHeader from './SectionHeader';
@@ -35,8 +35,15 @@ export default function AppShell() {
   const CurrentSection = SECTIONS[pasoActual - 1];
 
   const [toast, setToast] = useState({ msg: '', visible: false });
+  const mainRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [pasoActual]);
 
   const avanzar = useCallback(() => {
     if (pasoActual < 7) {
@@ -70,6 +77,7 @@ export default function AppShell() {
       <ProgressBar />
 
       <main
+        ref={mainRef}
         className="flex-1 overflow-y-auto no-scrollbar relative"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
